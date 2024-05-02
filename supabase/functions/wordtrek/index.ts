@@ -14,20 +14,25 @@ serve(async (req) => {
   const { events } = await req.json()
   console.log(events)
   if (events && events[0]?.type === "message") {
-    // 文字列化したメッセージデータ
-    // let messages:any = [
-    //   {
-    //     "type": "text",
-    //     "text": events[0].message.text
-    //   },
-    //   {
-    //     "type": "text",
-    //     "text": events[0].source.userId
-    //   },
-    // ]
     const reserved = ["登録されているリストを表示します", "シャッフル単語帳を始めます", "統計を確認します"]
     const word = events[0].message.text
-    if (reserved.includes(word)) return;
+    const userid = events[0].source.userId
+
+    if (reserved.includes(word)) {
+      if (word === reserved[0]) {
+        const myListWords = new Word({userid, word, count:0, meaning:null})
+        await myListWords.myList(supabaseClient())
+        let messages:any = myListWords.myListMessages()
+        replyMessage(events, messages)
+      }
+      if (word === reserved[1]) {
+        
+      }
+      if (word === reserved[2]) {
+        
+      }
+      return;
+    };
     
     const question: Message[] = [
       {
@@ -39,7 +44,7 @@ serve(async (req) => {
     const res = await openai(question);
     console.log(res?.content);
 
-    const userid = events[0].source.userId
+    
     const count = 1
     const words = new Word({userid, word, count, meaning:res?.content})
     await words.checkCount(supabaseClient())

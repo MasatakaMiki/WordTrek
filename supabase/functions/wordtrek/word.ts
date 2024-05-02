@@ -6,6 +6,7 @@ export class Word {
   _lastDate = new Date();
   _meaning = ""
   _errorrMessages = [];
+  _myList:any;
   constructor({userid, word, count, meaning}) {
     this._userid = userid;
     this._word = word;
@@ -20,7 +21,7 @@ export class Word {
       .eq('userid', this._userid)
       .eq('word', this._word)
     if (error) console.log({caused: "Word.constructor", error})
-    console.log(data)
+    //console.log(data)
     this._personCount = data.length;
 
     ({ data, error } = await supabaseClient
@@ -55,7 +56,7 @@ export class Word {
           "type": "text",
           "text": `${this._word}を調べたのは${this._count}回目です。最後に調べたのは${this._lastDate.toLocaleDateString('ja-JP')}です\n${this._word}は、あなたの他に${this._personCount}人が調べています`
         }
-      ]  
+      ]
     } else {
       return [
         {
@@ -65,6 +66,109 @@ export class Word {
         {
           "type": "text",
           "text": `${this._word}を登録しました\n${this._word}は、あなたの他に${this._personCount}人が調べています`
+        }
+      ]
+    }
+  }
+
+  async myList(supabaseClient) {
+    let { data, error } = await supabaseClient
+      .from('view_word')
+      .select('word,created_at')
+      .eq('userid', this._userid)
+      .order('created_at', { ascending: false })
+    if (error) console.log({caused: "Word.myList", error})
+    console.log(data)
+    this._myList = data;
+  }
+
+  myListMessages() {
+    if (this._myList.length > 0) {
+      const bubble = {
+          "type": "bubble",
+          "body": {
+            "type": "box",
+            "layout": "vertical",
+            "contents": [
+              {
+                "type": "text",
+                "text": "MY LIST",
+                "weight": "bold",
+                "color": "#1DB446",
+                "size": "sm"
+              },
+              {
+                "type": "box",
+                "layout": "vertical",
+                "margin": "xxl",
+                "spacing": "sm",
+                "contents": [
+                  {
+                    "type": "box",
+                    "layout": "horizontal",
+                    "contents": [
+                      {
+                        "type": "text",
+                        "text": "Sample",
+                        "size": "sm",
+                        "color": "#111111"
+                      },
+                      {
+                        "type": "text",
+                        "text": "2024/04/30",
+                        "size": "sm",
+                        "color": "#111111",
+                        "align": "end"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          "styles": {
+            "footer": {
+              "separator": true
+            }
+          }
+        }
+      console.log(bubble.body.contents[1].contents)
+      this._myList.forEach((list) => {
+        bubble.body.contents[1].contents?.push(
+          {
+            "type": "box",
+            "layout": "horizontal",
+            "contents": [
+              {
+                "type": "text",
+                "text": list.word,
+                "size": "sm",
+                "color": "#111111"
+              },
+              {
+                "type": "text",
+                "text": new Date(list.created_at).toLocaleDateString('ja-JP'),
+                "size": "sm",
+                "color": "#111111",
+                "align": "end"
+              }
+            ]
+          }
+        )
+      });
+      bubble.body.contents[1].contents?.shift()
+      return [
+        {
+          "type": "flex",
+          "altText": "This is a Flex Message",
+          "contents": bubble  
+        }
+      ]
+    } else {
+      return [
+        {
+          "type": "text",
+          "text": "まだ単語の登録がありません"
         }
       ]  
     }
