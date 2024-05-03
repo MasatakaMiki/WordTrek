@@ -7,6 +7,9 @@ export class Word {
   _meaning = ""
   _errorrMessages = [];
   _myList:any;
+  _statistics:any;
+  _shuffle_id = 0;
+  _shuffle:any;
   constructor({userid, word, count, meaning}) {
     this._userid = userid;
     this._word = word;
@@ -74,139 +77,199 @@ export class Word {
   async myList(supabaseClient) {
     let { data, error } = await supabaseClient
       .from('view_word')
-      .select('word,created_at')
+      .select('id,word,created_at')
       .eq('userid', this._userid)
+      .is('deleted_at', null)
       .order('created_at', { ascending: false })
     if (error) console.log({caused: "Word.myList", error})
-    console.log(data)
+    //console.log(data)
     this._myList = data;
   }
 
   myListMessages() {
     if (this._myList.length > 0) {
       const bubble = {
-          "type": "bubble",
-          "body": {
-            "type": "box",
-            "layout": "vertical",
-            "contents": [
-              {
-                "type": "text",
-                "text": "MY LIST",
-                "weight": "bold",
-                "color": "#1DB446",
-                "size": "sm"
-              },
-              {
-                "type": "box",
-                "layout": "vertical",
-                "margin": "xxl",
-                "spacing": "sm",
-                "contents": [
-                  {
-                    "type": "box",
-                    "layout": "horizontal",
-                    "contents": [
-                      {
-                        "type": "button",
-                        "action": {
-                          "type": "postback",
-                          "label": "削除",
-                          "data": "del"
-                        },
-                        "height": "sm",
-                        "adjustMode": "shrink-to-fit",
-                        "scaling": true
-                      },
-                      {
-                        "type": "text",
-                        "text": "Sample",
-                        "size": "sm",
-                        "color": "#111111"
-                      },
-                      {
-                        "type": "text",
-                        "text": "2024/04/30",
-                        "size": "sm",
-                        "color": "#111111",
-                        "align": "end"
-                      },
-                      {
-                        "type": "button",
-                        "action": {
-                          "type": "message",
-                          "label": "確認",
-                          "text": "確認"
-                        },
-                        "height": "sm",
-                        "adjustMode": "shrink-to-fit",
-                        "scaling": true
-                      }
-                    ],
-                    "alignItems": "center"
-                  }
-                ]
-              }
-            ]
-          },
-          "styles": {
-            "footer": {
-              "separator": true
+        "type": "bubble",
+        "size": "giga",
+        "header": {
+          "type": "box",
+          "layout": "vertical",
+          "contents": [
+            {
+              "type": "text",
+              "text": "MY LIST",
+              "weight": "bold",
+              "color": "#1DB446",
+              "size": "sm"
             }
+          ]
+        },
+        "body": {
+          "type": "box",
+          "layout": "vertical",
+          "contents": [
+            {
+              "type": "box",
+              "layout": "horizontal",
+              "contents": [
+                {
+                  "type": "box",
+                  "layout": "baseline",
+                  "contents": [
+                    {
+                      "type": "text",
+                      "text": "削除",
+                      "action": {
+                        "type": "postback",
+                        "label": "delete",
+                        "data": "hello"
+                      },
+                      "size": "xs",
+                      "color": "#1a0dab",
+                      "align": "start"
+                    }
+                  ],
+                  "width": "32px"
+                },
+                {
+                  "type": "box",
+                  "layout": "baseline",
+                  "contents": [
+                    {
+                      "type": "text",
+                      "text": "Sample",
+                      "size": "sm",
+                      "color": "#111111"
+                    }
+                  ],
+                  "width": "180px"
+                },
+                {
+                  "type": "box",
+                  "layout": "baseline",
+                  "contents": [
+                    {
+                      "type": "text",
+                      "text": "2024/04/30",
+                      "size": "xs",
+                      "color": "#111111",
+                      "align": "end"
+                    }
+                  ],
+                  "width": "80px"
+                },
+                {
+                  "type": "box",
+                  "layout": "baseline",
+                  "contents": [
+                    {
+                      "type": "text",
+                      "text": "確認",
+                      "action": {
+                        "type": "message",
+                        "label": "確認",
+                        "text": "確認"
+                      },
+                      "size": "sm",
+                      "color": "#1a0dab",
+                      "align": "end"
+                    }
+                  ],
+                  "width": "40px"
+                }
+              ]
+            }
+          ],
+          "paddingTop": "none",
+          "spacing": "lg"
+        },
+        "styles": {
+          "footer": {
+            "separator": true
           }
         }
-      console.log(bubble.body.contents[1].contents)
+      }
+      console.log(bubble.body.contents)
       this._myList.forEach((list) => {
-        bubble.body.contents[1].contents?.push(
+        bubble.body.contents.push(
           {
             "type": "box",
             "layout": "horizontal",
             "contents": [
               {
-                "type": "button",
-                "action": {
-                  "type": "postback",
-                  "label": "削除",
-                  "data": "del"
-                },
-                "height": "sm",
-                "adjustMode": "shrink-to-fit",
-                "scaling": true
+                "type": "box",
+                "layout": "baseline",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "削除",
+                    "action": {
+                      "type": "postback",
+                      "label": "delete",
+                      "data": JSON.stringify({action: 'delete', id: list.id, word: list.word})
+                    },
+                    "size": "xs",
+                    "color": "#1a0dab",
+                    "align": "start"
+                  }
+                ],
+                "width": "32px"
               },
               {
-                "type": "text",
-                "text": list.word,
-                "size": "sm",
-                "color": "#111111"
+                "type": "box",
+                "layout": "baseline",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": list.word,
+                    "size": "sm",
+                    "color": "#111111"
+                  }
+                ],
+                "width": "180px"
               },
               {
-                "type": "text",
-                "text": new Date(list.created_at).toLocaleDateString('ja-JP'),
-                "size": "sm",
-                "color": "#111111",
-                "align": "end"
+                "type": "box",
+                "layout": "baseline",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": new Date(list.created_at).toLocaleDateString('ja-JP'),
+                    "size": "xs",
+                    "color": "#111111",
+                    "align": "end"
+                  }
+                ],
+                "width": "80px"
               },
               {
-                "type": "button",
-                "action": {
-                  "type": "message",
-                  "label": "確認",
-                  "text": "確認"
-                },
-                "height": "sm",
-                "adjustMode": "shrink-to-fit",
-                "scaling": true
+                "type": "box",
+                "layout": "baseline",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "確認",
+                    "action": {
+                      "type": "message",
+                      "label": "確認",
+                      "text": list.word
+                    },
+                    "size": "sm",
+                    "color": "#1a0dab",
+                    "align": "end"
+                  }
+                ],
+                "width": "40px"
               }
-            ],
-            "alignItems": "center"
+            ]
           }
         )
       });
-      bubble.body.contents[1].contents?.shift()
+      bubble.body.contents.shift()
       return [
         {
           "type": "flex",
-          "altText": "This is a Flex Message",
+          "altText": "MY LISTを表示",
           "contents": bubble  
         }
       ]
@@ -218,5 +281,362 @@ export class Word {
         }
       ]  
     }
+  }
+
+  async statistics(supabaseClient) {
+    let { data, error } = await supabaseClient
+      .from('view_word_statistics')
+      .select('word,user_count')
+      .limit(20)
+      .order('user_count', { ascending: false })
+      .order('latest_date', { ascending: false })
+    if (error) console.log({caused: "Word.statistics", error})
+    console.log(data)
+    this._statistics = data;
+  }
+
+  statisticsMessages() {
+    if (this._statistics.length > 0) {
+      const bubble = {
+        "type": "bubble",
+        "size": "giga",
+        "header": {
+          "type": "box",
+          "layout": "vertical",
+          "contents": [
+            {
+              "type": "text",
+              "text": "STATISTICS",
+              "weight": "bold",
+              "color": "#1DB446",
+              "size": "sm"
+            }
+          ]
+        },
+        "body": {
+          "type": "box",
+          "layout": "vertical",
+          "contents": [
+            {
+              "type": "box",
+              "layout": "horizontal",
+              "contents": [
+                {
+                  "type": "box",
+                  "layout": "baseline",
+                  "contents": [
+                    {
+                      "type": "text",
+                      "text": "Sample",
+                      "size": "sm",
+                      "color": "#111111"
+                    }
+                  ],
+                  "width": "180px"
+                },
+                {
+                  "type": "box",
+                  "layout": "baseline",
+                  "contents": [
+                    {
+                      "type": "text",
+                      "text": "2024/04/30",
+                      "size": "xs",
+                      "color": "#111111",
+                      "align": "end"
+                    }
+                  ],
+                  "width": "80px"
+                },
+                {
+                  "type": "box",
+                  "layout": "baseline",
+                  "contents": [
+                    {
+                      "type": "text",
+                      "text": "確認",
+                      "action": {
+                        "type": "message",
+                        "label": "確認",
+                        "text": "確認"
+                      },
+                      "size": "sm",
+                      "color": "#1a0dab",
+                      "align": "end"
+                    }
+                  ],
+                  "width": "40px"
+                }
+              ]
+            }
+          ],
+          "paddingTop": "none",
+          "spacing": "lg"
+        },
+        "styles": {
+          "footer": {
+            "separator": true
+          }
+        }
+      }
+      console.log(bubble.body.contents)
+      let i = 0;
+      this._statistics.forEach((list) => {
+        i++;
+        bubble.body.contents.push(
+          {
+            "type": "box",
+            "layout": "horizontal",
+            "contents": [
+              {
+                "type": "box",
+                "layout": "baseline",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": i.toString() + '. ' + list.word,
+                    "size": "sm",
+                    "color": "#111111"
+                  }
+                ],
+                "width": "180px"
+              },
+              {
+                "type": "box",
+                "layout": "baseline",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": list.user_count + '人',
+                    "size": "xs",
+                    "color": "#111111",
+                    "align": "end"
+                  }
+                ],
+                "width": "80px"
+              },
+              {
+                "type": "box",
+                "layout": "baseline",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "確認",
+                    "action": {
+                      "type": "message",
+                      "label": "確認",
+                      "text": list.word
+                    },
+                    "size": "sm",
+                    "color": "#1a0dab",
+                    "align": "end"
+                  }
+                ],
+                "width": "40px"
+              }
+            ]
+          }
+        )
+      });
+      bubble.body.contents.shift()
+      return [
+        {
+          "type": "flex",
+          "altText": "STATISTICSを表示",
+          "contents": bubble  
+        }
+      ]
+    } else {
+      return [
+        {
+          "type": "text",
+          "text": "まだ単語の登録がありません"
+        }
+      ]  
+    }
+  }
+
+  async shuffle(supabaseClient) {
+    let { data, error } = await supabaseClient
+      .from('view_word')
+      .select('id')
+      .eq('userid', this._userid)
+      .is('deleted_at', null)
+    if (error) console.log({caused: "Word.shuffle", error});
+    if (data.length === 0) {
+      console.log('here')
+      this._shuffle_id = 0
+      return
+    }
+    // console.log(data);
+
+    ({ data, error } = await supabaseClient
+      .from('shuffle')
+      .insert({ userid: this._userid, words: data, words_rest: data })
+      .select('id'))
+    if(error) console.log({caused: "Word.shuffle", error});
+    // console.log(data)
+    this._shuffle_id = data[0].id;
+  }
+
+  async shuffleId(id) {
+    this._shuffle_id = id;
+  }
+
+  async shuffleRandom(supabaseClient) {
+    let { data, error } = await supabaseClient
+      .from('shuffle')
+      .select('id,words,words_rest')
+      .eq('id', this._shuffle_id)
+    if (error) console.log({caused: "Word.shuffleRandom", error});
+
+    if (data.length === 0) {
+      this._shuffle = []
+      return
+    }
+
+    let words = data[0].words;
+    let words_rest = data[0].words_rest;
+    // random
+    const randomIndex: number = Math.floor(Math.random() * words_rest.length);
+    // console.log(words_rest[randomIndex])
+    let word_id = words_rest[randomIndex].id;
+    words_rest.splice(randomIndex, 1);
+    // console.log(words_rest);
+
+    // data for message
+    ({ data, error } = await supabaseClient
+      .from('view_word')
+      .select('word,meaning')
+      .eq('userid', this._userid)
+      .eq('id', word_id))
+    if (error) console.log({caused: "Word.shuffleRandom", error})
+
+    this._shuffle = {
+      "shuffle_id": words_rest.length === 0 ? 0 : this._shuffle_id,
+      "counts": words.length,
+      "count": words.length - words_rest.length,
+      "word": data[0].word,
+      "meaning": data[0].meaning
+    }
+
+    // update
+    let updateTime = new Date();
+    ({ data, error } = await supabaseClient
+      .from('shuffle')
+      .update({ words_rest: words_rest, updated_at: updateTime })
+      .eq('id', this._shuffle_id))
+    if (error) console.log({caused: "Word.shuffleRandom", error});
+  }
+
+  shuffleMessages() {
+    if (this._shuffle.length === 0) {
+      return [
+        {
+          "type": "text",
+          "text": "まだ単語の登録がありません"
+        }
+      ]
+    }
+    const carousel = {
+      "type": "carousel",
+      "contents": [
+        {
+          "type": "bubble",
+          "size": "giga",
+          "header": {
+            "type": "box",
+            "layout": "horizontal",
+            "contents": [
+              {
+                "type": "text",
+                "text": "SHUFFLE",
+                "weight": "bold",
+                "color": "#1DB446",
+                "size": "sm"
+              },
+              {
+                "type": "text",
+                "text": this._shuffle.count.toString() + "/" + this._shuffle.counts.toString(),
+                "size": "xxs",
+                "align": "end",
+                "gravity": "bottom"
+              }
+            ]
+          },
+          "body": {
+            "type": "box",
+            "layout": "vertical",
+            "spacing": "sm",
+            "contents": [
+              {
+                "type": "text",
+                "text": this._shuffle.word,
+                "weight": "bold",
+                "size": "xl",
+                "align": "center"
+              }
+            ],
+            "paddingTop": "none"
+          },
+          "footer": {
+            "type": "box",
+            "layout": "vertical",
+            "spacing": "sm",
+            "contents": [
+              {
+                "type": "button",
+                "action": {
+                  "type": "postback",
+                  "label": "次の単語",
+                  "data": JSON.stringify({action: 'shuffle', id: this._shuffle.shuffle_id})
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "bubble",
+          "size": "giga",
+          "body": {
+            "type": "box",
+            "layout": "vertical",
+            "spacing": "sm",
+            "contents": [
+              {
+                "type": "text",
+                "text": "意味",
+                "weight": "bold",
+                "size": "md",
+                "wrap": true
+              },
+              {
+                "type": "separator"
+              },
+              {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": this._shuffle.meaning,
+                    "wrap": true
+                  }
+                ],
+                "paddingStart": "48px"
+              }
+            ]
+          }
+        }
+      ]
+    }
+    console.log(this._shuffle)
+    return [
+      {
+        "type": "flex",
+        "altText": "SHUFFLEを表示",
+        "contents": carousel  
+      }
+    ]
   }
 }

@@ -17,7 +17,18 @@ create table
 create index idx_word_userid on word (userid);
 
 create VIEW view_word AS
+SELECT a.ID, a.word, a.userid, a.created_at, a.deleted_at, a.meaning
+FROM word a
+INNER JOIN (
 SELECT word, userid, max(created_at) as created_at
 FROM word
-GROUP BY word, userid;
+GROUP BY word, userid
+) b
+ON a.word = b.word AND a.userid = b.userid AND a.created_at = b.created_at;
+
+create VIEW view_word_statistics AS
+SELECT word, count(distinct userid) as user_count, max(created_at) as latest_date
+FROM word
+GROUP BY word
+ORDER by 2 desc, 3 desc
 
