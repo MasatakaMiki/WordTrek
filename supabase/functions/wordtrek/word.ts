@@ -108,6 +108,17 @@ export class Word {
                     "layout": "horizontal",
                     "contents": [
                       {
+                        "type": "button",
+                        "action": {
+                          "type": "postback",
+                          "label": "削除",
+                          "data": "del"
+                        },
+                        "height": "sm",
+                        "adjustMode": "shrink-to-fit",
+                        "scaling": true
+                      },
+                      {
                         "type": "text",
                         "text": "Sample",
                         "size": "sm",
@@ -119,8 +130,20 @@ export class Word {
                         "size": "sm",
                         "color": "#111111",
                         "align": "end"
+                      },
+                      {
+                        "type": "button",
+                        "action": {
+                          "type": "message",
+                          "label": "確認",
+                          "text": "確認"
+                        },
+                        "height": "sm",
+                        "adjustMode": "shrink-to-fit",
+                        "scaling": true
                       }
-                    ]
+                    ],
+                    "alignItems": "center"
                   }
                 ]
               }
@@ -140,6 +163,17 @@ export class Word {
             "layout": "horizontal",
             "contents": [
               {
+                "type": "button",
+                "action": {
+                  "type": "postback",
+                  "label": "削除",
+                  "data": "del"
+                },
+                "height": "sm",
+                "adjustMode": "shrink-to-fit",
+                "scaling": true
+              },
+              {
                 "type": "text",
                 "text": list.word,
                 "size": "sm",
@@ -151,8 +185,20 @@ export class Word {
                 "size": "sm",
                 "color": "#111111",
                 "align": "end"
+              },
+              {
+                "type": "button",
+                "action": {
+                  "type": "message",
+                  "label": "確認",
+                  "text": "確認"
+                },
+                "height": "sm",
+                "adjustMode": "shrink-to-fit",
+                "scaling": true
               }
-            ]
+            ],
+            "alignItems": "center"
           }
         )
       });
