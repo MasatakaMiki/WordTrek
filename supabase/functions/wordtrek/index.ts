@@ -83,9 +83,14 @@ serve(async (req) => {
       await shuffleWords.shuffleRandom(supabaseClient())
       let messages:any = shuffleWords.shuffleMessages()
       replyMessage(events, messages)
+    } else if (postbackData.action === 'hallucination') {
+      // hallucination
+      const hallucinationWords = new Word({userid, word:postbackData.word, count:0, meaning:null})
+      await hallucinationWords.hallucination(supabaseClient())
+      let messages:any = hallucinationWords.hallucinationMessages()
+      replyMessage(events, messages)
     }
     replyMessage(events, messages)
-
   }
   return new Response(
     JSON.stringify({status: 'ok'}),

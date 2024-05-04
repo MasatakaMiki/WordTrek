@@ -21,7 +21,7 @@ export class Word {
     let { data, error } = await supabaseClient
       .from('view_word')
       .select('userid')
-      .eq('userid', this._userid)
+      .neq('userid', this._userid)
       .eq('word', this._word)
     if (error) console.log({caused: "Word.constructor", error})
     //console.log(data)
@@ -49,29 +49,115 @@ export class Word {
   }
 
   savedMessages() {
+    let wordMessage = '';
     if (this._count > 1) {
-      return [
-        {
-          "type": "text",
-          "text": `${this._meaning}`
-        },
-        {
-          "type": "text",
-          "text": `${this._word}を調べたのは${this._count}回目です。最後に調べたのは${this._lastDate.toLocaleDateString('ja-JP')}です\n${this._word}は、あなたの他に${this._personCount}人が調べています`
-        }
-      ]
+      wordMessage = `${this._word}を調べたのは${this._count}回目です。最後に調べたのは${this._lastDate.toLocaleDateString('ja-JP')}です。\n${this._word}は、あなたの他に${this._personCount}人が調べています。`
     } else {
-      return [
-        {
-          "type": "text",
-          "text": `${this._meaning}`
-        },
-        {
-          "type": "text",
-          "text": `${this._word}を登録しました\n${this._word}は、あなたの他に${this._personCount}人が調べています`
-        }
-      ]
+      wordMessage = `${this._word}を登録しました。\n${this._word}は、あなたの他に${this._personCount}人が調べています。`
     }
+    return [
+      // {
+      //   "type": "text",
+      //   "text": `${this._meaning}`
+      // },
+      // {
+      //   "type": "text",
+      //   "text": wordMessage
+      // },
+      {
+        "type": "flex",
+        "altText": `${this._word}の情報を表示`,
+        "contents": {
+          "type": "bubble",
+          "body": {
+            "type": "box",
+            "layout": "vertical",
+            "contents": [
+              {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": this._meaning,
+                    "wrap": true,
+                    "size": "sm",
+                    "color": "#000000"
+                  }
+                ],
+                "paddingBottom": "8px"
+              },
+              {
+                "type": "separator"
+              },
+              {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": wordMessage,
+                    "wrap": true,
+                    "size": "xs"
+                  }
+                ],
+                "paddingTop": "8px",
+                "paddingBottom": "8px"
+              },
+              {
+                "type": "separator"
+              },
+              {
+                "type": "box",
+                "layout": "horizontal",
+                "contents": [
+                  {
+                    "type": "box",
+                    "layout": "baseline",
+                    "contents": [
+                      {
+                        "type": "text",
+                        "text": "回答がおかしい場合はクリック👉",
+                        "size": "xs",
+                        "align": "end"
+                      }
+                    ],
+                    "width": "80%"
+                  },
+                  {
+                    "type": "box",
+                    "layout": "baseline",
+                    "contents": [
+                      {
+                        "type": "text",
+                        "text": "報告",
+                        "align": "center",
+                        "action": {
+                          "type": "postback",
+                          "label": "action",
+                          "data": JSON.stringify({action: 'hallucination', word: this._word})
+                        },
+                        "size": "sm",
+                        "color": "#1a0dab"
+                      }
+                    ],
+                    "width": "20%"
+                  }
+                ],
+                "paddingTop": "8px"
+              }
+            ],
+            "paddingTop": "8px",
+            "paddingBottom": "8px"
+          },
+          "styles": {
+            "footer": {
+              "separator": true
+            }
+          }
+        }  
+      }
+    ]
   }
 
   async myList(supabaseClient) {
@@ -636,6 +722,22 @@ export class Word {
         "type": "flex",
         "altText": "SHUFFLEを表示",
         "contents": carousel  
+      }
+    ]
+  }
+
+  async hallucination(supabaseClient) {
+    const { error } = await supabaseClient
+      .from('hallucination')
+      .insert({ userid: this._userid, word: this._word })
+    if(error) console.log({caused: "Word.hallucination", error})
+  }
+
+  hallucinationMessages() {
+    return [
+      {
+        "type": "text",
+        "text": `報告ありがとうございました。${this._word}の回答を確認します。`
       }
     ]
   }
